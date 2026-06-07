@@ -106,13 +106,20 @@ scene/house selectivity) under knockoff control (`results/mvp_brain_sae.png`).
 shared-stimulus data (`experiments/cross_domain_validation.py`).
 `experiments/headline_model_brain.py` runs the **real** join — real ViT-SAE vs
 real human-EEG-SAE over 200 shared THINGS-EEG2 images, matched at the independent
-image level with a permutation null. **Honest result:** the matcher fires on a
-synthetic positive control (176 vs null 0) but finds **no above-chance matches**
-on single-session scalp EEG (real 0, permutation p=1.0) — a data-SNR limit, not a
-method failure. Full write-up incl. why a non-independent design's "23 matches"
-were an artifact: `FINDINGS.md`. Indicated next step: move the join to
-spatially-resolved fMRI (NSD / THINGS-fMRI), where the brain-side SAE already
-works (c).
+image level with a permutation null. The matcher fires on a synthetic positive
+control (176 vs null 0) but finds **no above-chance matches** on real EEG, even
+after pooling all 4 sessions (80 reps/image).
+
+**(e) The diagnostic — and the real scientific finding.**
+`experiments/rsa_diagnostic.py` (RSA, permutation-tested) localizes the null:
+**raw ViT↔EEG representations share significant structure (rho=0.155, p=0.0005),
+but the SAE step attenuates it below significance (rho=0.067, p=0.058).** The
+model↔brain null is therefore *not* a failure of alignment (it exists) but
+evidence that the sparse-autoencoder basis discards the shared cross-domain
+structure — a controlled result on this project's central question (are SAE
+features the right canonical unit?). Open next questions: do larger /
+stability-gated SAEs recover it; does a spatially-resolved-fMRI join (stronger
+per-image structure) let SAE matching beat raw RSA. Full log: `FINDINGS.md`.
 
 ## 7. Milestone plan (the long-term journey)
 

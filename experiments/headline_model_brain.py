@@ -41,10 +41,12 @@ from crosssae.matching import cross_domain_match, matched_pairs
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 RESULTS = os.path.join(ROOT, "results")
 DATA = os.path.join(ROOT, "data", "things_eeg2")
-EEG = os.path.join(DATA, "raw-eeg/sub-01/ses-01/raw_eeg_test.npy")
+# Pool every session that has been downloaded (1 session = 20 reps/image,
+# 4 sessions = 80 reps/image -> ~2x SNR on the per-image averages).
+SESSIONS = sorted(glob.glob(os.path.join(DATA, "raw-eeg/sub-01/ses-*/raw_eeg_test.npy")))
 
-EPOCH_MS = (0, 250)          # post-onset window (RSVP SOA is 200ms)
-TIME_BINS = 5               # downsample the window to this many mean-bins
+EPOCH_MS = (60, 360)         # object-recognition ERP window (peaks ~150-250ms)
+TIME_BINS = 6               # downsample the window to this many mean-bins
 FDR_Q = 0.2
 N_PERM = 30                # permutation null (shuffle image<->brain alignment)
 
@@ -55,43 +57,50 @@ D_BRAIN_HID, K_BRAIN = 64, 8
 MIN_ACTIVE = 0.05
 
 
-def load_epochs():
-    """Return image-level brain matrix Xb (200, feats) — each row is the average
-    EEG response to one image across all its repetitions (independent rows) — and
-    the ordered list of 200 image file paths (by trigger code)."""
-    a = np.load(EEG, allow_pickle=True).item()
+def _epochs_one_session(path):
+    """Return {code: list of epoch vectors} for one session file."""
+    a = np.load(path, allow_pickle=True).item()
     data = a["raw_eeg_data"]; ch = list(a["ch_names"]); sf = int(a["sfreq"])
     eeg_idx = [i for i, t in enumerate(a["ch_types"]) if t == "eeg"]
     stim = data[ch.index("stim")]
-    X = data[eeg_idx]                                  # (63, T)
+    X = data[eeg_idx]
     X = (X - X.mean(1, keepdims=True)) / (X.std(1, keepdims=True) + 1e-8)
-
     onset = np.where((stim[1:] > 0) & (stim[:-1] == 0))[0] + 1
     codes = stim[onset].astype(int)
     keep = codes <= 200
     onset, codes = onset[keep], codes[keep]
-
     s0 = int(EPOCH_MS[0] * sf / 1000); s1 = int(EPOCH_MS[1] * sf / 1000)
     edges = np.linspace(s0, s1, TIME_BINS + 1).astype(int)
+    out = {}
+    for o, c in zip(onset, codes):
+        if o + s1 >= X.shape[1]:
+            continue
+        w = X[:, o + s0:o + s1]
+        binned = np.stack([w[:, edges[b]-s0:edges[b+1]-s0].mean(1) for b in range(TIME_BINS)], axis=1)
+        out.setdefault(int(c), []).append(binned.reshape(-1))   # 63*TIME_BINS
+    return out
 
+
+def load_epochs():
+    """Pool all downloaded sessions. Returns single-trial matrix (for SAE
+    training), trial->image index, per-image averages (for matching), and the
+    ordered list of 200 image file paths."""
     meta = np.load(os.path.join(DATA, "image_metadata.npy"), allow_pickle=True).item()
     files = meta["test_img_files"]
     by_base = {os.path.basename(p): p for p in glob.glob(os.path.join(DATA, "test_images", "**", "*.jpg"), recursive=True)}
     img_paths = [by_base.get(files[k]) for k in range(200)]
 
+    per_code = {c: [] for c in range(1, 201)}
+    for s in SESSIONS:
+        sess = _epochs_one_session(s)
+        for c, eps in sess.items():
+            per_code[c].extend(eps)
+
     trials, trial_img, Xb_img = [], [], []
     for code in range(1, 201):
-        ev = onset[codes == code]
-        ep = []
-        for o in ev:
-            if o + s1 >= X.shape[1]:
-                continue
-            w = X[:, o + s0:o + s1]
-            binned = np.stack([w[:, edges[b]-s0:edges[b+1]-s0].mean(1) for b in range(TIME_BINS)], axis=1)
-            ep.append(binned.reshape(-1))             # 63*TIME_BINS
-        ep = np.array(ep, dtype=np.float32)
+        ep = np.array(per_code[code], dtype=np.float32)
         trials.append(ep); trial_img.extend([code - 1] * len(ep))
-        Xb_img.append(ep.mean(0))                     # per-image average (for matching)
+        Xb_img.append(ep.mean(0))
     return (np.concatenate(trials), np.array(trial_img),
             np.array(Xb_img, dtype=np.float32), img_paths)
 
@@ -120,9 +129,10 @@ def main():
     os.makedirs(RESULTS, exist_ok=True)
     torch.manual_seed(0)
 
-    print("Epoching real EEG (sub-01 ses-01 test)...")
+    print(f"Epoching real EEG ({len(SESSIONS)} session(s) pooled)...")
     Xtr, trial_img, Xb_img, img_paths = load_epochs()
-    print(f"  {Xtr.shape[0]} single trials -> 200 per-image averages ({Xb_img.shape[1]} feats)")
+    reps = Xtr.shape[0] / 200
+    print(f"  {Xtr.shape[0]} single trials (~{reps:.0f} reps/image) -> 200 averages ({Xb_img.shape[1]} feats)")
 
     print("Extracting ViT activations over the 200 shared images...")
     Vimg = vit_features(img_paths)                     # (200, 384)

@@ -113,12 +113,21 @@ with FDR control **and a permutation null**.
 ![Headline](results/headline_model_brain.png)
 
 **Honest result:** the matcher detects cross-domain structure when it exists
-(synthetic positive control: 176 matches vs null 0), but on single-session scalp
-EEG it finds **no above-chance model↔brain matches** (real 0, permutation p=1.0).
-This is the correct, data-limited answer — scalp EEG lacks the spatial structure
-fMRI has — not a method failure (the engine is validated in §1–2 below). See
-[`FINDINGS.md`](FINDINGS.md) for the full honest write-up, including why an earlier
-non-independent design's "23 matches" were a dependency artifact.
+(synthetic positive control: 176 matches vs null 0), but on real EEG it finds
+**no above-chance model↔brain matches** (real 0, permutation p=1.0) — even after
+pooling all 4 sessions (80 reps/image). A diagnostic RSA then explains *why*, and
+it's the interesting part:
+
+> **Raw ViT↔EEG share significant structure (RSA rho=0.155, p=0.0005), but the SAE
+> step attenuates it below significance (rho=0.067, p=0.058).** The null isn't
+> "brains and models don't align" — they do — it's that the **sparse-autoencoder
+> basis discards the shared cross-domain structure.** Controlled evidence that SAE
+> features, though monosemantic within a domain, aren't (with these SAEs) the right
+> unit for cross-domain alignment.
+
+`experiments/rsa_diagnostic.py` → `results/rsa_diagnostic.png`. Full write-up incl.
+why an earlier non-independent design's "23 matches" were a dependency artifact:
+[`FINDINGS.md`](FINDINGS.md).
 
 ## Status (every experiment, honest)
 
@@ -126,5 +135,6 @@ non-independent design's "23 matches" were a dependency artifact.
 2. ✅ **Cross-domain matcher** recovers planted model↔brain pairs (`results/cross_domain_validation.png`).
 3. ✅ **Model side, real** — ViT → SAE → 277 FDR feature↔concept matches (`results/phase1_vit_sae.png`).
 4. ✅ **Brain side, real** — human fMRI → SAE → 73 FDR feature↔category matches, recovers VT selectivity (`results/mvp_brain_sae.png`).
-5. ⚖️ **Real model↔brain join** — honest negative on single-session EEG with permutation control (`results/headline_model_brain.png`).
-6. ⏭️ **Next** — move the join to spatially-resolved fMRI (NSD / THINGS-fMRI); pool all 4 EEG sessions; add the seed-stability gate to the real runs.
+5. ⚖️ **Real model↔brain join** — permutation-controlled null on real EEG, even with 80 reps/image (`results/headline_model_brain.png`).
+6. 🔬 **Diagnostic (the interesting result)** — RSA shows raw ViT↔EEG align (p=0.0005) but the SAE step attenuates it below significance: SAE features aren't the right unit for cross-domain alignment (`results/rsa_diagnostic.png`).
+7. ⏭️ **Next** — test whether larger / stability-gated SAEs recover the shared structure; move the join to spatially-resolved fMRI (NSD / THINGS-fMRI).

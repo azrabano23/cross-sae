@@ -45,14 +45,33 @@ Real ViT-SAE features vs real human-EEG-SAE features (THINGS-EEG2 sub-01,
 **Why this is the correct result, not a failure.** An earlier pseudo-trial
 version (n=1000, 5 correlated pseudo-trials/image) reported 23 "matches" — but
 those rows are not independent, so the knockoff filter was overconfident. Moving
-to independent image-level rows + a permutation null exposed that as an artifact:
-the honest answer is that single-subject, single-session **scalp EEG** averaged to
-200 images does not carry above-chance model↔brain SAE-feature correspondence.
-This is consistent with EEG's lack of the spatial structure fMRI has. The
-bottleneck is brain-data SNR, **not** the method (which the positive control and
-§1–2 validate).
+to independent image-level rows + a permutation null exposed that as an artifact.
 
-**Indicated next step for a positive cross-domain result:** move the join to
-spatially-resolved fMRI on a shared-stimulus set (NSD or THINGS-fMRI), where the
-brain-side SAE already works well (§4), and/or pool all 4 EEG sessions × 80
-repetitions per image for substantially higher SNR.
+**Tested the SNR hypothesis — and it failed.** I first guessed the null was
+single-session SNR, so I pooled all **4 sessions (80 reps/image, ~2× SNR)** and
+refined the ERP window. Still 0 matches, p=1.0. So the null is **not** merely a
+data-quantity problem. That motivated the diagnostic below.
+
+## 6. WHY the join is null: the SAE basis attenuates shared structure (RSA)
+`experiments/rsa_diagnostic.py` → `results/rsa_diagnostic.png`
+Representational Similarity Analysis localizes the null to data vs method:
+
+- **Raw ViT RDM vs EEG RDM:  Spearman rho = +0.155, p = 0.0005** (permutation).
+  There **is** significant shared structure between the vision transformer and
+  human EEG across the 200 images.
+- **model-SAE RDM vs brain-SAE RDM:  rho = +0.067, p = 0.058.** After the SAE
+  step the shared structure is **more than halved and falls below significance.**
+
+**Finding:** the model↔brain null is not "brains and models don't align" (they
+do, p=0.0005) — it's that the **sparse-autoencoder basis attenuates the shared
+cross-domain structure** that RSA detects in the raw representations. This is
+direct, controlled evidence on the project's core question: SAE features, though
+monosemantic *within* a domain, are not (with these SAEs) the right unit for
+cross-domain representational alignment.
+
+**Honest caveats:** SAE RSA is attenuated-but-marginal (p=0.058), not strictly
+zero; and these are modest SAEs (d=64) trained on limited data without the
+stability gate. Whether larger / stability-gated SAEs recover the shared structure
+is open and is the next experiment. The raw-RSA result also shows a spatially-
+resolved-fMRI join (where per-image structure is stronger) is the better testbed
+for whether SAE-feature matching can ever beat raw RSA.
