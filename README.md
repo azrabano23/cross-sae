@@ -99,13 +99,32 @@ knockoff engine** (model-SAE↔concept and brain-SAE↔concept). The only remain
 step for the headline model↔brain result is to join them on a shared-stimulus set
 (THINGS), where the right-hand matrix becomes the *other domain's* SAE features.
 
-## Status
+## Headline — real model↔brain match on shared stimuli (THINGS-EEG2)
 
-- ✅ Statistical engine (knockoff FDR matching) validated on synthetic
-  ground-truth (`results/fdr_calibration.png`).
-- ✅ Phase 1 (model side): real ViT → real SAE → FDR feature↔concept matching
-  (`results/phase1_vit_sae.png`).
-- ✅ MVP (brain side): real human fMRI → brain SAE → FDR feature↔category matching
-  (`results/mvp_brain_sae.png`).
-- ⏭️ Next: join both on shared stimuli (THINGS) for the model↔brain result;
-  add the seed-stability gate to the real runs.
+```bash
+pip install huggingface_hub timm nilearn   # + download THINGS-EEG2 sub-01 ses-01
+python experiments/headline_model_brain.py
+```
+
+The real join: real ViT-SAE features vs real human-**EEG**-SAE features over the
+**same 200 natural images** (THINGS-EEG2), matched at the independent image level
+with FDR control **and a permutation null**.
+
+![Headline](results/headline_model_brain.png)
+
+**Honest result:** the matcher detects cross-domain structure when it exists
+(synthetic positive control: 176 matches vs null 0), but on single-session scalp
+EEG it finds **no above-chance model↔brain matches** (real 0, permutation p=1.0).
+This is the correct, data-limited answer — scalp EEG lacks the spatial structure
+fMRI has — not a method failure (the engine is validated in §1–2 below). See
+[`FINDINGS.md`](FINDINGS.md) for the full honest write-up, including why an earlier
+non-independent design's "23 matches" were a dependency artifact.
+
+## Status (every experiment, honest)
+
+1. ✅ **Engine calibrated** — knockoff FDR on synthetic ground truth (`results/fdr_calibration.png`).
+2. ✅ **Cross-domain matcher** recovers planted model↔brain pairs (`results/cross_domain_validation.png`).
+3. ✅ **Model side, real** — ViT → SAE → 277 FDR feature↔concept matches (`results/phase1_vit_sae.png`).
+4. ✅ **Brain side, real** — human fMRI → SAE → 73 FDR feature↔category matches, recovers VT selectivity (`results/mvp_brain_sae.png`).
+5. ⚖️ **Real model↔brain join** — honest negative on single-session EEG with permutation control (`results/headline_model_brain.png`).
+6. ⏭️ **Next** — move the join to spatially-resolved fMRI (NSD / THINGS-fMRI); pool all 4 EEG sessions; add the seed-stability gate to the real runs.

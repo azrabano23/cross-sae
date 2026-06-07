@@ -51,3 +51,36 @@ def make_planted_matching(
         targets.append((y, np.sort(true_idx)))
 
     return X_brain, targets
+
+
+def make_shared_stimulus(
+    n: int = 3000,
+    n_model_features: int = 25,
+    p_brain: int = 80,
+    brain_per_model: int = 12,
+    signal: float = 2.2,
+    noise: float = 1.0,
+    rng: np.random.Generator | None = None,
+):
+    """Two SAE feature banks over the SAME stimuli with planted *distributed*
+    cross-domain correspondences: each model feature maps to a SET of brain
+    features (1-to-many), which is the biologically realistic regime — a single
+    model concept is read out by a population of brain features.
+
+    Built on make_planted_matching so the per-target signal matches the validated
+    knockoff regime. Returns Z_model (the model SAE features), Z_brain (brain SAE
+    features), and the set of true (model_idx, brain_idx) pairs.
+    """
+    if rng is None:
+        rng = np.random.default_rng(0)
+
+    X_brain, targets = make_planted_matching(
+        n=n, p_brain=p_brain, n_targets=n_model_features,
+        matches_per_target=brain_per_model, signal=signal, noise=noise, rng=rng)
+
+    Z_model = np.maximum(np.stack([y for y, _ in targets], axis=1), 0.0)  # (n, n_model_features)
+    true_pairs = set()
+    for m, (_, true_idx) in enumerate(targets):
+        for j in true_idx:
+            true_pairs.add((m, int(j)))
+    return Z_model, X_brain, true_pairs

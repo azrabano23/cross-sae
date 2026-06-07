@@ -99,10 +99,20 @@ across 10 concepts (q=0.2)** with structured selectivity
 FDR-matches brain features to the viewed object category — **73 matches**, with
 unsupervised features recovering known VT organization (strong, cleanly-separated
 scene/house selectivity) under knockoff control (`results/mvp_brain_sae.png`).
-**Both domains now run on real data through the identical engine;** the headline
-model↔brain result is the join on a shared-stimulus set (THINGS). Object
-categories that don't clear threshold (face, bottle, …) reflect conservative FDR +
-single-subject diffuse coding — reported honestly, not hidden.
+
+**(d) Cross-domain matcher + headline join.**
+`crosssae/matching.py` implements the feature↔feature matcher; it recovers all
+300 planted model↔brain pairs at full power under FDR control on synthetic
+shared-stimulus data (`experiments/cross_domain_validation.py`).
+`experiments/headline_model_brain.py` runs the **real** join — real ViT-SAE vs
+real human-EEG-SAE over 200 shared THINGS-EEG2 images, matched at the independent
+image level with a permutation null. **Honest result:** the matcher fires on a
+synthetic positive control (176 vs null 0) but finds **no above-chance matches**
+on single-session scalp EEG (real 0, permutation p=1.0) — a data-SNR limit, not a
+method failure. Full write-up incl. why a non-independent design's "23 matches"
+were an artifact: `FINDINGS.md`. Indicated next step: move the join to
+spatially-resolved fMRI (NSD / THINGS-fMRI), where the brain-side SAE already
+works (c).
 
 ## 7. Milestone plan (the long-term journey)
 

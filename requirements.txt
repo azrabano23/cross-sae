@@ -5,9 +5,12 @@ scikit-learn>=1.3
 matplotlib>=3.7
 torch>=2.1
 
-# Real-data pipeline — install for the model-side (Phase 1) and brain-side (MVP) runs:
-#   pip install timm torchvision nilearn
-# timm>=0.9         # ViT/CLIP activations (experiments/phase1_vit_sae.py)
-# torchvision>=0.16 # CIFAR-10 images
-# nilearn>=0.10     # Haxby fMRI, brain-side SAE (experiments/mvp_brain_sae.py)
-# datasets>=2.18    # THINGS-EEG2 from HuggingFace (scale-up; loader schema WIP)
+# Real-data pipeline — install for the model-side, brain-side, and headline runs:
+#   pip install timm torchvision nilearn huggingface_hub pillow
+# timm>=0.9          # ViT/CLIP activations (phase1_vit_sae.py, headline_model_brain.py)
+# torchvision>=0.16  # CIFAR-10 images
+# nilearn>=0.10      # Haxby fMRI, brain-side SAE (mvp_brain_sae.py)
+# huggingface_hub    # THINGS-EEG2 raw download (headline_model_brain.py)
+# pillow>=10.0       # image loading
+# NOTE: the THINGS-EEG2 `datasets` loader ships a broken ClassLabel schema;
+#       the headline experiment downloads the raw .npy files directly instead.
