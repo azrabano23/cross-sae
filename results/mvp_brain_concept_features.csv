@@ -1,0 +1,9 @@
+category,n_significant_features,top_feature_id,top_W
+bottle,0,-1,0.0
+cat,5,487,0.2094737953393819
+chair,17,263,0.13782470471483357
+face,0,-1,0.0
+house,27,305,0.2563069588646938
+scissors,0,-1,0.0
+scrambledpix,24,217,0.17622297442202262
+shoe,0,-1,0.0

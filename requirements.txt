@@ -1,0 +1,13 @@
+# Core (the synthetic demo + statistical engine run with just these)
+numpy>=1.26
+scipy>=1.11
+scikit-learn>=1.3
+matplotlib>=3.7
+torch>=2.1
+
+# Real-data pipeline — install for the model-side (Phase 1) and brain-side (MVP) runs:
+#   pip install timm torchvision nilearn
+# timm>=0.9         # ViT/CLIP activations (experiments/phase1_vit_sae.py)
+# torchvision>=0.16 # CIFAR-10 images
+# nilearn>=0.10     # Haxby fMRI, brain-side SAE (experiments/mvp_brain_sae.py)
+# datasets>=2.18    # THINGS-EEG2 from HuggingFace (scale-up; loader schema WIP)
