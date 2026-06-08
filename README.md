@@ -153,7 +153,8 @@ artifact, and the self-correction from §6→§7): [`FINDINGS.md`](FINDINGS.md).
 5. ⚖️ **Real model↔brain join** — permutation-controlled null on real EEG, even with 80 reps/image (`results/headline_model_brain.png`).
 6. 🔬 **Diagnostic** — RSA shows raw ViT↔EEG align (rho=0.155, p=0.0005); a small SAE attenuates it (`results/rsa_diagnostic.png`).
 7. 🔬 **Capacity ablation** — the attenuation is capacity, not sparsity: SAE RSA → 0.118 at k=64, ≥ dense PCA, under a 0.214 noise ceiling (`results/sae_vs_pca_rsa.png`).
-8. ⏭️ **Next** — re-run the FDR match at recovered capacity (k=64); move to spatially-resolved fMRI (higher ceiling); add the stability gate.
+8. 🔬 **Temporal RSA** — the ViT↔brain alignment peaks at **120 ms (p=0.001)**, the object-recognition latency: the shared structure is genuine visual-object representation (`results/temporal_rsa.png`).
+9. ⏭️ **Next** — re-run the FDR match at recovered capacity (k=64); EEG-FM substrate (Tarjuman); spatially-resolved fMRI (higher ceiling); stability gate.
 
 ## How to cite
 

@@ -100,3 +100,28 @@ the headline FDR match — run at d=64 — was null.)
 cross-domain match at k=64 to see whether the recovered structure yields
 above-chance feature matches, and move to spatially-resolved fMRI for a higher
 noise ceiling.
+
+## 8. The shared structure is genuine object recognition: it peaks at 120 ms
+`experiments/temporal_rsa.py` → `results/temporal_rsa.png`
+Time-resolved RSA (Cichy et al. 2014 style) between the fixed ViT RDM and the EEG
+RDM in sliding 40 ms windows, with a per-window split-half noise ceiling and a
+1000-permutation test per window:
+
+- **Flat / non-significant before ~80 ms** (no spurious low-level or pre-onset alignment).
+- **Rises sharply and becomes significant at 100 ms** (p=0.022), **peaks at 120 ms
+  (RSA=0.125, p=0.001)**, stays significant through 150 ms, then decays.
+- 6/17 windows significant at p<0.05; the peak sits well under the noise ceiling.
+
+**Interpretation.** 120 ms is the canonical latency at which object/category
+information becomes decodable in human visual cortex, and matches published
+CNN↔brain RSA timing (Cichy et al. 2014). So the ViT↔EEG structure this project
+matches is **genuine visual-object representation** — it appears at the
+object-recognition moment, not before (ruling out low-level/onset confounds) and
+fades with the RSVP cycle. This anchors the whole cross-domain question: there is
+a real, temporally-localized, semantically-meaningful signal to be matched; the
+open problem is the *unit* (raw vs SAE vs FM-latent) and the *brain modality*
+(scalp EEG's low ceiling vs fMRI) that let a feature-level matcher recover it.
+
+**Caveat:** analysis restricted to 0–200 ms because the RSVP SOA is 200 ms
+(later windows mix the next image); single subject; the per-window noise ceiling is
+itself noisy (split-half on single-window amplitudes).
