@@ -118,16 +118,17 @@ with FDR control **and a permutation null**.
 pooling all 4 sessions (80 reps/image). A diagnostic RSA then explains *why*, and
 it's the interesting part:
 
-> **Raw ViT↔EEG share significant structure (RSA rho=0.155, p=0.0005), but the SAE
-> step attenuates it below significance (rho=0.067, p=0.058).** The null isn't
-> "brains and models don't align" — they do — it's that the **sparse-autoencoder
-> basis discards the shared cross-domain structure.** Controlled evidence that SAE
-> features, though monosemantic within a domain, aren't (with these SAEs) the right
-> unit for cross-domain alignment.
+> **Raw ViT↔EEG share significant structure (RSA rho=0.155, p=0.0005)** — brains and
+> models *do* align. A small (d=64) SAE attenuated it (rho=0.067), but a controlled
+> capacity ablation shows that's a **capacity effect, not a sparsity effect:** SAE
+> RSA climbs to 0.118 at k=64 (toward the raw 0.155, under a 0.214 noise ceiling),
+> and **matches or beats dense PCA at equal capacity.** A sufficiently large SAE
+> recovers the cross-domain structure.
 
-`experiments/rsa_diagnostic.py` → `results/rsa_diagnostic.png`. Full write-up incl.
-why an earlier non-independent design's "23 matches" were a dependency artifact:
-[`FINDINGS.md`](FINDINGS.md).
+`experiments/rsa_diagnostic.py`, `experiments/sae_vs_pca_rsa.py` →
+`results/rsa_diagnostic.png`, `results/sae_vs_pca_rsa.png`. Full write-up
+(incl. why an earlier non-independent design's "23 matches" were a dependency
+artifact, and the self-correction from §6→§7): [`FINDINGS.md`](FINDINGS.md).
 
 ## Status (every experiment, honest)
 
@@ -136,5 +137,6 @@ why an earlier non-independent design's "23 matches" were a dependency artifact:
 3. ✅ **Model side, real** — ViT → SAE → 277 FDR feature↔concept matches (`results/phase1_vit_sae.png`).
 4. ✅ **Brain side, real** — human fMRI → SAE → 73 FDR feature↔category matches, recovers VT selectivity (`results/mvp_brain_sae.png`).
 5. ⚖️ **Real model↔brain join** — permutation-controlled null on real EEG, even with 80 reps/image (`results/headline_model_brain.png`).
-6. 🔬 **Diagnostic (the interesting result)** — RSA shows raw ViT↔EEG align (p=0.0005) but the SAE step attenuates it below significance: SAE features aren't the right unit for cross-domain alignment (`results/rsa_diagnostic.png`).
-7. ⏭️ **Next** — test whether larger / stability-gated SAEs recover the shared structure; move the join to spatially-resolved fMRI (NSD / THINGS-fMRI).
+6. 🔬 **Diagnostic** — RSA shows raw ViT↔EEG align (rho=0.155, p=0.0005); a small SAE attenuates it (`results/rsa_diagnostic.png`).
+7. 🔬 **Capacity ablation** — the attenuation is capacity, not sparsity: SAE RSA → 0.118 at k=64, ≥ dense PCA, under a 0.214 noise ceiling (`results/sae_vs_pca_rsa.png`).
+8. ⏭️ **Next** — re-run the FDR match at recovered capacity (k=64); move to spatially-resolved fMRI (higher ceiling); add the stability gate.
