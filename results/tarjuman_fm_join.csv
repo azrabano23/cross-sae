@@ -1,0 +1,6 @@
+substrate,capacity,sae_rsa_mean,sae_rsa_std,pca_rsa
+raw-EEG,8,0.0715,0.0059,0.0773
+raw-EEG,16,0.0820,0.0149,0.0988
+raw-EEG,32,0.1042,0.0215,0.1034
+raw-EEG,64,0.1158,0.0014,0.1047
+raw_rho,,0.1553,noise_ceiling,0.2142

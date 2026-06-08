@@ -125,3 +125,28 @@ open problem is the *unit* (raw vs SAE vs FM-latent) and the *brain modality*
 **Caveat:** analysis restricted to 0–200 ms because the RSVP SOA is 200 ms
 (later windows mix the next image); single subject; the per-window noise ceiling is
 itself noisy (split-half on single-window amplitudes).
+
+## 9. Tarjuman — brain-side SUBSTRATE as the new axis (harness validated; FM arm open)
+`experiments/tarjuman_fm_join.py` → `results/tarjuman_fm_join.png`
+Tarjuman (see `TARJUMAN.md`, `paper/tarjuman_skeleton.md`) asks the §8 "unit"
+question one level down: not raw-vs-SAE basis (settled in §7: capacity, not sparsity)
+but the brain-side *substrate* the SAE is trained on — raw EEG vs a pretrained EEG
+foundation-model (CBraMod/LaBraM) latent space. The experiment reuses the §7 protocol
+verbatim (split-half noise ceiling, capacity sweep k∈{8,16,32,64}, multi-seed SAE,
+dense-PCA control) and adds substrate as the new axis.
+
+- **Built-in cross-check PASSED.** The raw-EEG substrate reproduces §7: noise
+  ceiling = 0.214, raw ViT↔EEG = 0.155 (p=0.0005), brain-SAE RSA climbs 0.071 (k=8) →
+  0.116 (k=64), SAE ≈ dense PCA at matched capacity. The harness is trustworthy.
+- **Quantified headroom (the target).** Best raw-EEG substrate reaches RSA 0.116 vs a
+  0.214 ceiling — only ~54% of the available signal. That ~0.10 gap is the room a
+  better substrate would have to close, and is the bar the FM arm must clear.
+- **FM substrate: OPEN, not yet run.** The eeg-fm arm requires real pretrained weights
+  and is SKIPPED (never faked) without them. The thesis is supported only if FM-SAE
+  beats *both* raw-EEG *and* its own capacity-matched PCA control toward the ceiling;
+  the experiment prints "THESIS NOT SUPPORTED" otherwise. Day-0 kill-check (June 2026)
+  confirmed the {brain-SAE-on-FM-substrate × FDR cross-system match × stability} combo
+  is still unclaimed.
+
+**Honest status:** the apparatus and the bar are in place; Tarjuman's central claim is
+untested until the CBraMod/LaBraM arm runs. Next: obtain weights → run the FM arm.

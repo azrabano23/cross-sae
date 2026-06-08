@@ -14,3 +14,11 @@ torch>=2.1
 # pillow>=10.0       # image loading
 # NOTE: the THINGS-EEG2 `datasets` loader ships a broken ClassLabel schema;
 #       the headline experiment downloads the raw .npy files directly instead.
+
+# Tarjuman FM backbone (experiments/tarjuman_fm_join.py, crosssae/backbone.py):
+#   identity + pca arms run with the core deps above (no extra installs).
+#   The eeg-fm arm needs a pretrained EEG foundation model + its weights:
+#     CBraMod : https://github.com/wjq-learning/CBraMod   (ICLR 2025)
+#     LaBraM  : https://github.com/935963004/LaBraM
+#   Then: TARJUMAN_FM_WEIGHTS=/path/to/cbramod.pth python experiments/tarjuman_fm_join.py
+#   The FM arm is SKIPPED (never faked) if no weights are present.
