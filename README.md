@@ -15,6 +15,20 @@ See [`research_plan.md`](research_plan.md) for the full motivation, the
 adversarially-verified prior-work gap analysis, the honesty boundary on the
 statistics, and the milestone plan.
 
+## Results at a glance
+
+| Experiment | Data | Key metric | Result |
+|---|---|---|---|
+| FDR engine calibration | synthetic, planted matches | empirical vs nominal FDR | controlled across q ∈ [0.10, 0.30], full recovery |
+| Cross-domain matcher | synthetic, 300 planted pairs | power / FDR | all 300 recovered, FDR ≤ nominal |
+| Model side (real) | ViT on CIFAR-10 | SAE R² / FDR matches | R² ≈ 0.84, **277** feature↔concept matches (q = 0.2) |
+| Brain side (real) | human fMRI (Haxby 2001, VT cortex) | SAE R² / FDR matches | R² ≈ 0.97, **73** feature↔category matches; recovers VT selectivity |
+| Headline join (real) | ViT-SAE ↔ EEG-SAE, THINGS-EEG2, 200 shared images | FDR matches / permutation null | **0 matches, p = 1.0** — honest null (synthetic positive control = 176) |
+| Diagnostic (RSA) | raw ViT ↔ EEG RDMs | Spearman ρ | **ρ = 0.155, p = 0.0005** — shared structure does exist |
+| Capacity ablation | SAE vs PCA at matched capacity | RSA ρ | SAE ρ → 0.118 at k = 64 (≥ dense PCA; noise ceiling 0.214) |
+
+**Honest headline:** vision transformers and human visual cortex *do* share representational structure (RSA ρ = 0.155, p = 0.0005), and a sufficiently high-capacity SAE recovers it — a small SAE attenuates it through a **capacity, not sparsity, effect**. The feature-level cross-domain match under strict FDR is null at current capacity, and is reported as a null alongside the diagnostic that explains it. The contribution is the *method + the error-controlled protocol*, validated end-to-end on both domains.
+
 ## Quickstart (runs in ~10s, no GPU, no downloads)
 
 ```bash
@@ -140,3 +154,14 @@ artifact, and the self-correction from §6→§7): [`FINDINGS.md`](FINDINGS.md).
 6. 🔬 **Diagnostic** — RSA shows raw ViT↔EEG align (rho=0.155, p=0.0005); a small SAE attenuates it (`results/rsa_diagnostic.png`).
 7. 🔬 **Capacity ablation** — the attenuation is capacity, not sparsity: SAE RSA → 0.118 at k=64, ≥ dense PCA, under a 0.214 noise ceiling (`results/sae_vs_pca_rsa.png`).
 8. ⏭️ **Next** — re-run the FDR match at recovered capacity (k=64); move to spatially-resolved fMRI (higher ceiling); add the stability gate.
+
+## How to cite
+
+```bibtex
+@misc{bano_cross_sae,
+  author       = {Bano, Azra},
+  title        = {cross-sae: FDR-controlled sparse-autoencoder feature matching across vision models and the human brain},
+  year         = {2026},
+  howpublished = {\url{https://github.com/azrabano23/cross-sae}}
+}
+```
