@@ -141,12 +141,35 @@ dense-PCA control) and adds substrate as the new axis.
 - **Quantified headroom (the target).** Best raw-EEG substrate reaches RSA 0.116 vs a
   0.214 ceiling — only ~54% of the available signal. That ~0.10 gap is the room a
   better substrate would have to close, and is the bar the FM arm must clear.
-- **FM substrate: OPEN, not yet run.** The eeg-fm arm requires real pretrained weights
-  and is SKIPPED (never faked) without them. The thesis is supported only if FM-SAE
-  beats *both* raw-EEG *and* its own capacity-matched PCA control toward the ceiling;
-  the experiment prints "THESIS NOT SUPPORTED" otherwise. Day-0 kill-check (June 2026)
-  confirmed the {brain-SAE-on-FM-substrate × FDR cross-system match × stability} combo
-  is still unclaimed.
+- **Day-0 kill-check (June 2026) PASSED** — {brain-SAE-on-FM-substrate × FDR
+  cross-system match × stability} still unclaimed.
 
-**Honest status:** the apparatus and the bar are in place; Tarjuman's central claim is
-untested until the CBraMod/LaBraM arm runs. Next: obtain weights → run the FM arm.
+## 9b. Tarjuman — real CBraMod FM arm: honest negative, and WHY (testbed mismatch)
+`experiments/tarjuman_fm_cbramod.py` → `results/tarjuman_fm_cbramod.png`
+Ran the actual hypothesis with **real pretrained CBraMod** (ICLR 2025; HF
+`weighting666/CBraMod`, loads with 0 missing keys). Design: identical 1 s single-trial
+windows for both arms (CBraMod's patch is hard-locked to 200 pts = 1 s @ 200 Hz, the
+minimum valid input), substrate the only variable; k=32, 2 seeds; per-substrate
+split-half noise ceiling.
+
+| arm (1 s windows, k=32) | SAE RSA | PCA RSA | rep-RSA | substrate ceiling |
+|---|---|---|---|---|
+| raw-EEG @1 s | +0.028 | +0.085 | +0.135 (p<.001) | **0.100** |
+| eeg-fm (CBraMod) | +0.043 | +0.014 | +0.068 (p=.043) | **0.009** |
+
+**Verdict: THESIS NOT SUPPORTED on THINGS-EEG2 — but this is a CONFOUND, not a clean
+refutation, and the evidence says exactly why:**
+- **FM noise ceiling collapses to 0.009** — CBraMod's per-image latents are
+  trial-*un*reliable here. With a 1 s window over 200 ms RSVP, each FM input spans ~5
+  images, so almost no trial-reproducible per-image signal survives. (FM-SAE 0.043
+  even *exceeds* its 0.009 ceiling → the absolute FM numbers are unreliable, not real.)
+- **The 1 s window alone wrecks the signal:** raw-EEG SAE falls 0.116 (clean 300 ms,
+  §7) → 0.028 here. Window mismatch, not the FM, drives most of the degradation.
+
+**What this proves:** the full pipeline runs end-to-end with a *real* foundation model
+and yields an honest, mechanistically-explained negative. **Decisive redirect:**
+THINGS-EEG2 (200 ms RSVP) is the wrong testbed for a 1 s-patch EEG FM. A clean test of
+the FM-substrate hypothesis needs **slower-SOA visual EEG (≥1 s/stimulus)** or **fMRI
+(NSD — clean per-image betas)**. Preprocessing was also only a generic stand-in for
+CBraMod's pretraining pipeline (second-order caveat). Next: pick a matched-SOA testbed
+before re-testing; do NOT tune this dataset to force a positive.

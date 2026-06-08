@@ -175,14 +175,26 @@ class EEGFoundationBackbone(BrainBackbone):
 
     def _build_arch(self):  # pragma: no cover - depends on external repo
         if self.cfg.model == "cbramod":
+            # Point at a clone of github.com/wjq-learning/CBraMod via CBRAMOD_REPO
+            # (its model lives at models.cbramod, not a top-level `cbramod` package).
+            import os as _os
+            import sys as _sys
+            repo = _os.environ.get("CBRAMOD_REPO", "/tmp/CBraMod")
             try:
-                from cbramod import CBraMod  # type: ignore
+                if repo not in _sys.path:
+                    _sys.path.insert(0, repo)
+                from models.cbramod import CBraMod  # type: ignore
             except Exception as e:
                 raise RuntimeError(
-                    "Install the CBraMod package/repo so `from cbramod import "
-                    "CBraMod` works, or vendor its model.py."
+                    "Could not import CBraMod. Clone github.com/wjq-learning/CBraMod "
+                    "and set CBRAMOD_REPO=/path/to/CBraMod (its model is models.cbramod)."
                 ) from e
-            return CBraMod()
+            import torch.nn as _nn
+            model = CBraMod(in_dim=200, out_dim=200, d_model=200,
+                            dim_feedforward=800, seq_len=30, n_layer=12, nhead=8)
+            # use the encoder features directly (drop the pretraining reconstruction head)
+            model.proj_out = _nn.Identity()
+            return model
         if self.cfg.model == "labram":
             try:
                 from labram import labram_base_patch200_200  # type: ignore
