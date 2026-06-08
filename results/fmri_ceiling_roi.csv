@@ -1,0 +1,5 @@
+metric,value
+image_decoding_acc,0.1500
+fmri_visual_ceiling,0.4568
+fmri_wholebrain_ceiling,0.04
+eeg_ceiling,0.2140
