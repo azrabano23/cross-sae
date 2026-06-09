@@ -173,3 +173,43 @@ the FM-substrate hypothesis needs **slower-SOA visual EEG (≥1 s/stimulus)** or
 (NSD — clean per-image betas)**. Preprocessing was also only a generic stand-in for
 CBraMod's pretraining pipeline (second-order caveat). Next: pick a matched-SOA testbed
 before re-testing; do NOT tune this dataset to force a positive.
+
+## 10. fMRI is the higher-ceiling testbed AND the SAE dictionary survives on it
+`experiments/fmri_join_thingsfmri.py` → `results/fmri_ceiling_roi.png`
+`experiments/fmri_brain_sae.py`      → `results/fmri_brain_sae.png`
+Following the §9b redirect, moved the brain side to THINGS-fMRI (OpenNeuro ds004192),
+visual-cortex voxels read lazily over S3 (only test cols; betas + ROI masks are openly
+licensed; the THINGS object *images* are gated and were NOT downloaded/bypassed). Two
+results, both brain-side-only (no images needed):
+
+**(a) The testbed has the headroom.** sub-01, 100 test images × 12 reps, 10,481
+visual-cortex voxels: image-decoding 20% (chance 1%), split-half RDM noise ceiling
+**0.457 — 2.1× the scalp-EEG ceiling (0.214)**. (A naive whole-brain read dilutes this
+to ~0.04 / 3% decoding — caught and never reported as real.) This is the headroom a
+feature-level matcher needs.
+
+**(b) The SAE dictionary preserves fMRI visual structure — with an honest sparsity
+caveat.** Brain-side Top-k SAE swept k∈{8,16,32,64} (2 seeds) vs a matched-capacity PCA
+control, measuring image-decoding and RDM-preservation (Spearman vs raw-voxel RDM):
+
+| k | SAE decode | SAE RDM-pres | SAE R² | PCA decode | PCA RDM-pres |
+|---|---|---|---|---|---|
+| 8 | 14.5% | 0.69 | 0.22 | 5% | 0.76 |
+| 32 | 33.5% | 0.78 | 0.41 | 31% | 0.90 |
+| 64 | **38%** | **0.83** | 0.61 | **60%** | **0.92** |
+
+- **GOOD (the green light):** unlike scalp EEG (§6/§7, where the SAE barely preserved
+  cross-domain structure), the fMRI brain-SAE clearly *preserves* it — RDM-preservation
+  0.83 and decoding **38%, which beats raw voxels (20%)** because the sparse basis
+  denoises across reps. The brain-side dictionary is viable on the high-ceiling
+  substrate; the ViT-SAE↔fMRI-SAE join is green-lit (pending user-supplied images).
+- **HONEST CAVEAT (do not bury):** at matched capacity **dense PCA beats the SAE**
+  (k=64: 60% vs 38% decode; 0.92 vs 0.83 RDM-pres), and SAE R²=0.61 indicates the SAE
+  is under-fitting. This *differs* from the EEG §7 result (SAE≈PCA): on the richer fMRI
+  substrate sparsity has a real fidelity cost. The justification for SAE-over-PCA here
+  is **interpretability** (monosemantic, nameable, FDR-matchable features), NOT raw
+  fidelity — and the SAE needs more width/training to narrow the gap.
+
+**Net:** fMRI is the right substrate (2.1× ceiling) and the dictionary survives there;
+the remaining blocker for the headline join is purely the gated stimulus images
+(`THINGS_IMAGES_DIR`), not the method.
