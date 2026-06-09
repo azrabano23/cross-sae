@@ -2,10 +2,12 @@
 
 *Paper skeleton — v0.1. Azra Bano. Target: NeurIPS/ICLR (main or interpretability/NeuroAI workshop as a fast first release).*
 
-> **Working honesty banner (keep in the draft until results are in):** every
-> headline number below is a *target slot*, not a result. The repo's integrity rule
-> (FINDINGS.md) holds: report what the data says, with the control that proves it,
-> and never tune a pipeline until a null becomes positive.
+> **Working honesty banner.** Numbers marked ✅ are real, logged results
+> (FINDINGS.md §6–10); numbers in [brackets] are still target slots. The repo's
+> integrity rule holds: report what the data says, with the control that proves it,
+> and never tune a pipeline until a null becomes positive. The empirical arc so far is
+> a chain of *honest negatives that each redirect the work* — that is the paper's spine,
+> not a weakness.
 
 ---
 
@@ -28,14 +30,20 @@ the model side, stimuli, SAE recipe, capacity, and the FDR-controlled matching e
 fixed, we compare brain-side representations — raw EEG, a capacity-matched PCA control,
 and FM latents — across a capacity sweep, against the noise ceiling, on (i) RSA before
 vs after the sparse bottleneck and (ii) FDR-controlled ViT↔brain feature matching with
-a permutation null. The FM arm must beat the capacity-matched PCA control, not merely
-raw EEG, to justify itself. We report [RESULT]. We
-additionally extend Model-X knockoff feature selection from artificial-LM latents to
-*biological* FM latents, characterizing where its Gaussian approximation holds.
-[If positive:] the result yields the first statistically-controlled, FM-grounded
-"Rosetta dictionary" of features shared between an artificial vision model and the
-human brain. [If negative:] it bounds when sparse features can serve as a
-cross-system interlingua at all — itself a load-bearing result for interpretability.
+a permutation null. **Findings.** (1) ✅ On THINGS-EEG2, a real pretrained EEG FM
+(CBraMod) does *not* lift cross-domain alignment — but for a diagnosable reason, not a
+refutation: CBraMod's 1 s patch over 200 ms RSVP collapses the per-image noise ceiling
+to ρ≈0.009 (each FM input spans ~5 images), so the testbed, not the hypothesis, fails.
+(2) ✅ Moving the brain side to spatially-resolved THINGS-fMRI raises the visual-cortex
+ceiling to ρ≈0.46 (2.1× scalp EEG) and the SAE *preserves* that structure (RDM-pres
+0.83, image-decoding 38% > raw voxels 20% via denoising) — the brain-side dictionary is
+viable there. (3) ✅ But at matched capacity dense PCA out-preserves the SAE (60% vs
+38% decode), so on rich substrates **sparsity trades fidelity for interpretability** —
+the case for SAE-over-PCA rests on monosemantic, nameable, FDR-matchable features, which
+we make explicit. We additionally extend Model-X knockoff feature selection from
+artificial-LM latents toward *biological* latents, characterizing where its Gaussian
+approximation holds. The headline ViT-SAE↔fMRI-SAE join is method-ready and gated only
+on access-controlled stimulus images, not on the approach.
 
 ---
 
@@ -79,18 +87,24 @@ before submission.
 
 ## 3. Contributions
 
-1. **The FM-backbone hypothesis test** — a clean, single-variable comparison
-   (raw / PCA / FM brain representation) of whether an FM latent space lets sparse
-   features survive cross-domain matching. Resolves our prior negative.
-2. **Knockoff FDR on biological FM latents** — first extension of Model-X knockoffs
-   from artificial-LM SAE latents to a *brain* FM's SAE latents; empirical
-   calibration of where the Gaussian-surrogate guarantee holds on non-Gaussian
-   neural latents.
-3. **The Rosetta dictionary (conditional on a positive result)** — a
-   significance-tested, stability-gated set of features shared between an artificial
-   vision model and human visual cortex, with auto-generated natural-language cards.
-4. **Open-source tool** — `crosssae` + `backbone` + the FM-join experiment;
-   reproducible, dependency-gated, honest-fallback.
+1. **A substrate/basis decomposition of cross-domain SAE matching** — we separate
+   three things usually conflated: the *substrate* (EEG vs FM-latents vs fMRI), the
+   *basis* (sparse SAE vs dense PCA), and *capacity*. Result: capacity (not sparsity)
+   governs recovery on EEG (§7); substrate governs the ceiling (EEG ρ≈0.21 vs fMRI
+   ρ≈0.46, §10); and on rich substrates the sparse basis trades fidelity for
+   interpretability (PCA > SAE at matched capacity, §10).
+2. **A diagnosable FM-substrate negative** — the first attempt to use a real pretrained
+   EEG FM (CBraMod) as a brain-side SAE substrate, with the *mechanism* of its failure
+   pinned quantitatively (1 s-patch vs 200 ms-RSVP → per-image ceiling collapse), which
+   redirects the field to matched-SOA / fMRI substrates rather than abandoning the idea.
+3. **Knockoff FDR toward biological latents** — extending Model-X knockoffs from
+   artificial-LM SAE latents to brain latents; empirical calibration of where the
+   Gaussian-surrogate guarantee holds on non-Gaussian neural latents.
+4. **The Rosetta dictionary (method-ready)** — a significance-tested, stability-gated
+   set of features shared between an artificial vision model and human visual cortex,
+   with auto-generated NL cards; gated only on access-controlled images, not method.
+5. **Open-source tool** — `crosssae` + `backbone` + the experiments; reproducible,
+   dependency-gated, honest-fallback, and ethics-respecting (no gated-data bypass).
 
 ## 4. Method
 
@@ -105,20 +119,30 @@ before submission.
 - **Two diagnostics, identical across arms.** (i) RSA before vs after the SAE
   bottleneck (does the SAE preserve structure?); (ii) FDR matches vs permutation null.
 
-## 5. Experiments & results [SLOTS]
+## 5. Experiments & results
 
-- **E1 — Substrate × capacity sweep against the noise ceiling.** For each backbone
-  {identity, PCA, FM} sweep capacity k∈{8,16,32,64} (multi-seed), plot cross-domain
-  RSA vs the split-half EEG noise ceiling — the exact protocol of `sae_vs_pca_rsa.py`
-  (§7), with the brain substrate as the new axis. *Hypothesis:* the FM curve sits
-  above the capacity-matched PCA/identity curves and closer to the ceiling. A null
-  here (FM ≈ PCA) is a real, reportable bound. [`results/tarjuman_fm_join.png`]
-- **E2 — FDR-controlled matches + permutation null** per arm. [slot]
-- **E3 — Knockoff calibration on FM latents** (synthetic planted structure in FM
-  latent space; does empirical FDR ≤ nominal?). [slot, extends `fdr_calibration`]
-- **E4 — The dictionary** (if E1/E2 positive): top matched feature pairs, NL cards,
-  ROI/known-organization sanity. [slot]
-- **E5 — Ablations:** SAE width/k, FM layer, pooling, subjects; stability fraction.
+- **E1 — EEG substrate × capacity sweep vs noise ceiling.** ✅ `tarjuman_fm_join.py`
+  reproduces §7 (ceiling 0.214; raw ViT↔EEG 0.155, p=5e-4; brain-SAE RSA 0.071→0.116
+  over k=8→64; SAE≈PCA). Harness validated; best raw-EEG substrate uses only ~54% of
+  available signal. [`results/tarjuman_fm_join.png`]
+- **E2 — Real CBraMod FM substrate (EEG).** ✅ `tarjuman_fm_cbramod.py`. Identical 1 s
+  windows, substrate the only variable, k=32: raw-EEG SAE 0.028 (ceiling 0.100) vs
+  eeg-fm SAE 0.043 (**ceiling 0.009**). Thesis NOT supported on THINGS-EEG2 — confound,
+  not refutation: 1 s-patch/200 ms-RSVP mismatch collapses the FM per-image ceiling.
+  [`results/tarjuman_fm_cbramod.png`]
+- **E3 — fMRI testbed ceiling.** ✅ `fmri_join_thingsfmri.py`. THINGS-fMRI visual cortex
+  (10,481 voxels): image-decoding 20% (chance 1%), RDM ceiling **0.457 = 2.1× EEG**;
+  whole-brain dilution artifact caught (0.04) and excluded. [`results/fmri_ceiling_roi.png`]
+- **E4 — fMRI brain-side SAE preservation.** ✅ `fmri_brain_sae.py`. SAE preserves
+  structure (k=64: RDM-pres 0.83, decode 38% > raw 20%) → dictionary viable; honest
+  caveat: PCA > SAE at matched capacity (60% vs 38%), R²=0.61 → sparsity-fidelity cost.
+  [`results/fmri_brain_sae.png`]
+- **E5 — Knockoff calibration on neural latents** (synthetic planted structure; does
+  empirical FDR ≤ nominal on heavy-tailed brain latents?). [slot, extends `fdr_calibration`]
+- **E6 — The headline join + dictionary** (needs `THINGS_IMAGES_DIR`): ViT-SAE↔fMRI-SAE
+  FDR matches + permutation null at the 0.46 ceiling; top matched pairs, NL cards,
+  ROI/known-organization sanity, stability fractions. [method-ready; gated on images]
+- **E7 — Ablations:** SAE width/k, subjects, ROI subsets; stability gate (PW-MCC).
 
 ## 6. Honesty / limitations (do not soften)
 
@@ -132,6 +156,16 @@ before submission.
 - The "Platonic universal axes drive alignment" strong causal claim was refuted in
   the literature (0-3 in our adversarial review) — we make only the weaker
   empirical claim.
+- **Sparsity has a fidelity cost on rich substrates** (§10): on fMRI, dense PCA
+  out-preserves the SAE at matched capacity. We do not claim SAEs are the most faithful
+  basis; we claim they are the most *interpretable* one (monosemantic, nameable,
+  FDR-matchable), and we report the PCA gap rather than hiding it.
+- **Dataset↔FM matching matters** (§9b): a foundation model's input granularity must
+  match the data's presentation rate (CBraMod's 1 s patch vs 200 ms RSVP). We report
+  the per-image noise-ceiling collapse as the diagnostic, not a raw RSA number.
+- **Ethics:** THINGS object images are access-controlled; all results here use only
+  openly-licensed betas/ROI metadata read in place — the join awaits user-supplied
+  `THINGS_IMAGES_DIR`, never a bypass.
 
 ## 7. Broader impact / the bridge to Tarjuman (product)
 
@@ -150,8 +184,13 @@ adds the FM arm. Engine validated on synthetic ground truth
 ---
 
 ### Author TODO before submission
-- [ ] Day-0 kill-check (dual-SAE-on-FM × FDR still unclaimed?)
-- [ ] Run FM arm with real CBraMod + LaBraM weights; pick layer by E5
-- [ ] NSD fMRI replication (v2 / stronger testbed)
-- [ ] Stability fractions for every reported match
-- [ ] Decide venue: workshop fast-release vs main-track with NSD
+- [x] Day-0 kill-check (combo still unclaimed — June 2026)
+- [x] Run real CBraMod FM arm (EEG) — diagnosable negative (E2)
+- [x] Establish fMRI as higher-ceiling testbed + SAE viability there (E3/E4)
+- [ ] **Headline join (E6):** obtain `THINGS_IMAGES_DIR` (credentialed) → ViT-SAE↔fMRI-SAE
+      FDR matches at the 0.46 ceiling — the result that closes the paper
+- [ ] Knockoff FDR calibration on neural latents (E5)
+- [ ] Stability fractions (PW-MCC) for every reported match
+- [ ] Widen/better-train the fMRI SAE to narrow the PCA gap (or argue interpretability-only)
+- [ ] Multi-subject fMRI; consider NSD as second substrate
+- [ ] Decide venue: workshop fast-release (current results) vs main-track (with E6)
