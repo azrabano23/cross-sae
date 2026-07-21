@@ -1,0 +1,5 @@
+metric,value
+real_mean_concentration,0.3214
+null_mean_concentration,0.3251
+n_selective_features,48
+selective_in_lateral (LO/TO),48
